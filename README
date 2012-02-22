@@ -1,0 +1,12 @@
+The LaTeX package 'lvdebug' shows boxes, glues, kerns and
+penalties in the PDF output.
+
+Usage:
+
+\usepackage{lvdebug}
+
+Requirements: The package only works with LuaLaTeX.
+  With other engines, a warning message will be shown.
+
+Copyright 2012 Patrick Gundlach (patrick@gundla.ch),
+licensed under the MIT license. See the Lua file for details.

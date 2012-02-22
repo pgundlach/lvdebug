@@ -1,0 +1,9 @@
+\ProvidesPackage{lvdebug}[2012/02/22 v0.1 Visual debugging in LuaLaTeX (PGU)]
+\RequirePackage{ifluatex}
+\ifluatex
+  \RequirePackage{luatexbase,atbegshi}
+  \directlua{ lvdebug = require("lvdebug") }
+  \AtBeginShipout {\directlua{lvdebug.draw()}}
+\else
+  \PackageWarning{lvdebug}{You are using this package without LuaTeX. This is not supported, so you don't get any visual debugging.}
+\fi
