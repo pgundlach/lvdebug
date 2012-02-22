@@ -1,5 +1,6 @@
 -- Copyright 2012 Patrick Gundlach, patrick@gundla.ch
 -- released under the "MIT license" (see footer of this file)
+-- Public repository: https://github.com/pgundlach/lvdebug (issues/pull requests,...)
 
 module(...,package.seeall)
 
