@@ -2,8 +2,8 @@
 \RequirePackage{ifluatex}
 \ifluatex
   \RequirePackage{luatexbase,atbegshi}
-  \directlua{ lvdebug = require("lua-visual-debug") }
-  \AtBeginShipout {\directlua{lvdebug.draw()}}
+  \directlua{ lvd = require("lua-visual-debug") }
+  \AtBeginShipout {\directlua{lvd.show_page_elements(tex.box["AtBeginShipoutBox"])}}
 \else
   \PackageWarning{lua-visual-debug}{You are using this package without LuaTeX. This is not supported, so you don't get any visual debugging.}
 \fi

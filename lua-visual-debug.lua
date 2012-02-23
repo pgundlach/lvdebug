@@ -8,7 +8,9 @@ local factor = 65782  -- big points vs. TeX points
 local rule_width = 0.1
 
 
-local function draw_pagebox(head,parent)
+function show_page_elements(box)
+  local head   = box.list
+  local parent = box
   while head do
     if head.id == 0 or head.id == 1 then -- hbox / vbox
 
@@ -16,7 +18,7 @@ local function draw_pagebox(head,parent)
       local ht = (head.height + head.depth)  / factor - rule_width
       local dp = head.depth                  / factor - rule_width / 2
 
-      draw_pagebox(head.list,head)
+      show_page_elements(head)
       local wbox = node.new("whatsit","pdf_literal")
       if head.id == 0 then -- hbox
         wbox.data = string.format("q 0.5 G %g w %g %g %g %g re s Q", rule_width, -rule_width / 2, -dp, wd, ht)
@@ -24,8 +26,19 @@ local function draw_pagebox(head,parent)
         wbox.data = string.format("q 0.1 G %g w %g %g %g %g re s Q", rule_width, -rule_width / 2, 0, wd, -ht)
       end
       wbox.mode = 0
-
       head.list = node.insert_before(head.list,head.list,wbox)
+
+    elseif head.id == 2 then -- rule
+      if head.width == 0 then head.width = 0.4 * 2^16 end
+      local goback = node.new("kern")
+      goback.kern = -head.width
+      node.insert_after(parent.list,head,goback)
+      head = goback
+
+    elseif head.id == 7 then -- disc
+      local hyphen_marker = node.new("whatsit","pdf_literal")
+      hyphen_marker.data = "q 0 0 1 RG 0.3 w 0 -1 m 0 0 l S Q"
+      parent.list = node.insert_before(parent.list,head,hyphen_marker)
 
     elseif head.id == 10 then -- glue
       local wd = head.spec.width
@@ -46,7 +59,7 @@ local function draw_pagebox(head,parent)
       end
       wbox.mode = 0
 
-      node.insert_before(parent.list,head,wbox)
+      parent.list = node.insert_before(parent.list,head,wbox)
     elseif head.id == 11 then -- kern
       local wbox = node.new("whatsit","pdf_literal")
       local color = "1 1 0 rg"
@@ -56,7 +69,7 @@ local function draw_pagebox(head,parent)
       else
         wbox.data = string.format("q %s 0 w 0 0  1 %g re B Q",color, -head.kern / factor )
       end
-      node.insert_before(parent.list,head,wbox)
+      parent.list = node.insert_before(parent.list,head,wbox)
     elseif head.id == 12 then -- penalty
       local color = "1 g"
       local wbox = node.new("whatsit","pdf_literal")
@@ -64,19 +77,11 @@ local function draw_pagebox(head,parent)
         color = string.format("%d g", 1 - head.penalty / 10000)
       end
       wbox.data = string.format("q %s 0 w 0 0 1 1 re B Q",color)
-      node.insert_before(parent.list,head,wbox)
-    else
-      -- ignore
+      parent.list = node.insert_before(parent.list,head,wbox)
     end
     head = head.next
   end
 end
-
-local function draw()
-  draw_pagebox(tex.box["AtBeginShipoutBox"].list,tex.box["AtBeginShipoutBox"])
-end
-
-return { draw = draw }
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
 -- "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
