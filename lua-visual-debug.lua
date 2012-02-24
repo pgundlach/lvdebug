@@ -4,20 +4,52 @@
 
 module(...,package.seeall)
 
-local factor = 65782  -- big points vs. TeX points
-local rule_width = 0.1
+-- There are 65782 scaled points in a PDF point
+-- Therefore we need to devide all TeX lengths by
+-- this amount to get the PDF points.
+local number_sp_in_a_pdf_point = 65782
+
+
+-- The idea is the following: at page shipout, all elements on a page are fixed.
+-- TeX creates an intermediate data structure before putting that into the PDF
+-- We can "intercept" that data structure and add pdf_literal (whatist) nodes,
+-- that makes glues, kerns and other items visible by drawing a rule, rectangle or
+-- other visual aids.
+-- This has no influence on typeset material, because these pdf_literal instructions
+-- are only visible to the PDF file (PDF renderer) and have no size themselves.
+
+-- We recursively loop through the contents of boxes and look at the (linear) list of
+-- items in that box. We start at the "shipout box".
+
+-- The "algorithm" goes like this:
+--
+-- head = pointer_to_beginning_of_box_material
+-- while head is not nil
+--   if this_item_is_a_box
+--     recurse_into_contents
+--     draw a rectangle around the contents
+--   elseif this_item_is_a_glue
+--     draw a rule that has the length of that glue
+--   elseif this_item_is_a_kern
+--     draw a rectangle with width of that kern
+--   ...
+--   end
+--   move pointer to the next item in the list
+--   -- the pointer is "nil" if there is no next item
+-- end
 
 
 function show_page_elements(parent)
-
-  local head   = parent.list
+  local head = parent.list
   while head do
     if head.id == 0 or head.id == 1 then -- hbox / vbox
 
-      local wd = head.width                  / factor - rule_width
-      local ht = (head.height + head.depth)  / factor - rule_width
-      local dp = head.depth                  / factor - rule_width / 2
+      local rule_width = 0.1
+      local wd = head.width                  / number_sp_in_a_pdf_point - rule_width
+      local ht = (head.height + head.depth)  / number_sp_in_a_pdf_point - rule_width
+      local dp = head.depth                  / number_sp_in_a_pdf_point - rule_width / 2
 
+      -- recurse into the contents of the box
       show_page_elements(head)
       local rectangle = node.new("whatsit","pdf_literal")
       if head.id == 0 then -- hbox
@@ -54,9 +86,9 @@ function show_page_elements(parent)
       end
       local pdfstring = node.new("whatsit","pdf_literal")
       if parent.id == 0 then --hlist
-        pdfstring.data = string.format("q %s [0.2] 0 d  0.5 w 0 0  m %g 0 l s Q",color,wd / factor)
+        pdfstring.data = string.format("q %s [0.2] 0 d  0.5 w 0 0  m %g 0 l s Q",color,wd / number_sp_in_a_pdf_point)
       else -- vlist
-        pdfstring.data = string.format("q 0.1 G 0.1 w -0.5 0 m 0.5 0 l -0.5 %g m 0.5 %g l s [0.2] 0 d  0.5 w 0.25 0  m 0.25 %g l s Q",-wd / factor,-wd / factor,-wd / factor)
+        pdfstring.data = string.format("q 0.1 G 0.1 w -0.5 0 m 0.5 0 l -0.5 %g m 0.5 %g l s [0.2] 0 d  0.5 w 0.25 0  m 0.25 %g l s Q",-wd / number_sp_in_a_pdf_point,-wd / number_sp_in_a_pdf_point,-wd / number_sp_in_a_pdf_point)
       end
       parent.list = node.insert_before(parent.list,head,pdfstring)
 
@@ -66,9 +98,9 @@ function show_page_elements(parent)
       local color = "1 1 0 rg"
       if head.kern < 0 then color = "1 0 0 rg" end
       if parent.id == 0 then --hlist
-        rectangle.data = string.format("q %s 0 w 0 0  %g 1 re B Q",color, head.kern / factor )
+        rectangle.data = string.format("q %s 0 w 0 0  %g 1 re B Q",color, head.kern / number_sp_in_a_pdf_point )
       else
-        rectangle.data = string.format("q %s 0 w 0 0  1 %g re B Q",color, -head.kern / factor )
+        rectangle.data = string.format("q %s 0 w 0 0  1 %g re B Q",color, -head.kern / number_sp_in_a_pdf_point )
       end
       parent.list = node.insert_before(parent.list,head,rectangle)
 

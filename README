@@ -1,12 +1,22 @@
-The LaTeX package 'lua-visual-debug' shows boxes, glues, kerns and
+The LuaTeX package 'lua-visual-debug' shows boxes, glues, kerns and
 penalties in the PDF output.
 
 Usage:
 
+LaTeX:
+
 \usepackage{lua-visual-debug}
 
-Requirements: The package only works with LuaLaTeX.
-  With other engines, a warning message will be shown.
+or (plain)
+
+\input lua-visual-debug
+
+
+
+Requirements: The package has only been tested with LuaTeX and
+  the formats plain and LaTeX. Other formats might work as well,
+  but other engines only show a warning message.
+
 
 Copyright 2012 Patrick Gundlach (patrick@gundla.ch)
 Public repository: https://github.com/pgundlach/lvdebug
