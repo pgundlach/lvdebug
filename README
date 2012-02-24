@@ -9,7 +9,7 @@ LaTeX:
 
 or (plain)
 
-\input lua-visual-debug
+\input lua-visual-debug.sty
 
 
 
