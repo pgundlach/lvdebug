@@ -8,9 +8,9 @@ local factor = 65782  -- big points vs. TeX points
 local rule_width = 0.1
 
 
-function show_page_elements(box)
-  local head   = box.list
-  local parent = box
+function show_page_elements(parent)
+
+  local head   = parent.list
   while head do
     if head.id == 0 or head.id == 1 then -- hbox / vbox
 
@@ -19,14 +19,14 @@ function show_page_elements(box)
       local dp = head.depth                  / factor - rule_width / 2
 
       show_page_elements(head)
-      local wbox = node.new("whatsit","pdf_literal")
+      local rectangle = node.new("whatsit","pdf_literal")
       if head.id == 0 then -- hbox
-        wbox.data = string.format("q 0.5 G %g w %g %g %g %g re s Q", rule_width, -rule_width / 2, -dp, wd, ht)
+        rectangle.data = string.format("q 0.5 G %g w %g %g %g %g re s Q", rule_width, -rule_width / 2, -dp, wd, ht)
       else
-        wbox.data = string.format("q 0.1 G %g w %g %g %g %g re s Q", rule_width, -rule_width / 2, 0, wd, -ht)
+        rectangle.data = string.format("q 0.1 G %g w %g %g %g %g re s Q", rule_width, -rule_width / 2, 0, wd, -ht)
       end
-      wbox.mode = 0
-      head.list = node.insert_before(head.list,head.list,wbox)
+      head.list = node.insert_before(head.list,head.list,rectangle)
+
 
     elseif head.id == 2 then -- rule
       if head.width == 0 then head.width = 0.4 * 2^16 end
@@ -35,10 +35,12 @@ function show_page_elements(box)
       node.insert_after(parent.list,head,goback)
       head = goback
 
+
     elseif head.id == 7 then -- disc
       local hyphen_marker = node.new("whatsit","pdf_literal")
       hyphen_marker.data = "q 0 0 1 RG 0.3 w 0 -1 m 0 0 l S Q"
       parent.list = node.insert_before(parent.list,head,hyphen_marker)
+
 
     elseif head.id == 10 then -- glue
       local wd = head.spec.width
@@ -50,34 +52,34 @@ function show_page_elements(box)
         wd = wd - parent.glue_set * head.spec.shrink
         color = "1 0 1 RG"
       end
-
-      local wbox = node.new("whatsit","pdf_literal")
+      local pdfstring = node.new("whatsit","pdf_literal")
       if parent.id == 0 then --hlist
-        wbox.data = string.format("q %s [0.2] 0 d  0.5 w 0 0  m %g 0 l s Q",color,wd / factor)
+        pdfstring.data = string.format("q %s [0.2] 0 d  0.5 w 0 0  m %g 0 l s Q",color,wd / factor)
       else -- vlist
-        wbox.data = string.format("q 0.1 G 0.1 w -0.5 0 m 0.5 0 l -0.5 %g m 0.5 %g l s [0.2] 0 d  0.5 w 0.25 0  m 0.25 %g l s Q",-wd / factor,-wd / factor,-wd / factor)
+        pdfstring.data = string.format("q 0.1 G 0.1 w -0.5 0 m 0.5 0 l -0.5 %g m 0.5 %g l s [0.2] 0 d  0.5 w 0.25 0  m 0.25 %g l s Q",-wd / factor,-wd / factor,-wd / factor)
       end
-      wbox.mode = 0
+      parent.list = node.insert_before(parent.list,head,pdfstring)
 
-      parent.list = node.insert_before(parent.list,head,wbox)
+
     elseif head.id == 11 then -- kern
-      local wbox = node.new("whatsit","pdf_literal")
+      local rectangle = node.new("whatsit","pdf_literal")
       local color = "1 1 0 rg"
       if head.kern < 0 then color = "1 0 0 rg" end
       if parent.id == 0 then --hlist
-        wbox.data = string.format("q %s 0 w 0 0  %g 1 re B Q",color, head.kern / factor )
+        rectangle.data = string.format("q %s 0 w 0 0  %g 1 re B Q",color, head.kern / factor )
       else
-        wbox.data = string.format("q %s 0 w 0 0  1 %g re B Q",color, -head.kern / factor )
+        rectangle.data = string.format("q %s 0 w 0 0  1 %g re B Q",color, -head.kern / factor )
       end
-      parent.list = node.insert_before(parent.list,head,wbox)
+      parent.list = node.insert_before(parent.list,head,rectangle)
+
     elseif head.id == 12 then -- penalty
       local color = "1 g"
-      local wbox = node.new("whatsit","pdf_literal")
+      local rectangle = node.new("whatsit","pdf_literal")
       if head.penalty < 10000 then
         color = string.format("%d g", 1 - head.penalty / 10000)
       end
-      wbox.data = string.format("q %s 0 w 0 0 1 1 re B Q",color)
-      parent.list = node.insert_before(parent.list,head,wbox)
+      rectangle.data = string.format("q %s 0 w 0 0 1 1 re B Q",color)
+      parent.list = node.insert_before(parent.list,head,rectangle)
     end
     head = head.next
   end
