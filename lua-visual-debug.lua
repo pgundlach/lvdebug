@@ -82,11 +82,15 @@ function show_page_elements(parent)
 
 
     elseif head.id == 2 then -- rule
-      if head.width == 0 then head.width = 0.4 * 2^16 end
-      local goback = node.new("kern")
-      goback.kern = -head.width
-      node.insert_after(parent.list,head,goback)
-      head = goback
+      local show_rule = node.new("whatsit","pdf_literal")
+      if head.width == -1073741824 or head.height == -1073741824 or head.depth == -1073741824 then
+        -- ignore for now -- these rules are stretchable
+      else
+        local dp = math.round( head.depth / number_sp_in_a_pdf_point  ,2)
+        local ht = math.round( head.height / number_sp_in_a_pdf_point ,2)
+        show_rule.data =  string.format("q 1 0 0 RG 1 0 0 rg 0.4 w 0 %g m 0 %g l S Q",-dp,ht)
+      end
+      parent.list = node.insert_before(parent.list,head,show_rule)
 
 
     elseif head.id == 7 then -- disc
@@ -114,6 +118,7 @@ function show_page_elements(parent)
       end
       parent.list = node.insert_before(parent.list,head,pdfstring)
 
+
     elseif head.id == 11 then -- kern
       local rectangle = node.new("whatsit","pdf_literal")
       local color = "1 1 0 rg"
@@ -125,6 +130,7 @@ function show_page_elements(parent)
         rectangle.data = string.format("q %s 0 w 0 0  1 %g re B Q",color, -k )
       end
       parent.list = node.insert_before(parent.list,head,rectangle)
+
 
     elseif head.id == 12 then -- penalty
       local color = "1 g"
