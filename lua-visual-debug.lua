@@ -51,6 +51,14 @@ local number_sp_in_a_pdf_point = 65782
 --   -- the pointer is "nil" if there is no next item
 -- end
 
+function math.round(num, idp)
+  if idp and idp>0 then
+    local mult = 10^idp
+    return math.floor(num * mult + 0.5) / mult
+  end
+  return math.floor(num + 0.5)
+end
+
 
 function show_page_elements(parent)
   local head = parent.list
@@ -58,9 +66,9 @@ function show_page_elements(parent)
     if head.id == 0 or head.id == 1 then -- hbox / vbox
 
       local rule_width = 0.1
-      local wd = head.width                  / number_sp_in_a_pdf_point - rule_width
-      local ht = (head.height + head.depth)  / number_sp_in_a_pdf_point - rule_width
-      local dp = head.depth                  / number_sp_in_a_pdf_point - rule_width / 2
+      local wd = math.round(head.width                  / number_sp_in_a_pdf_point - rule_width )
+      local ht = math.round((head.height + head.depth)  / number_sp_in_a_pdf_point - rule_width )
+      local dp = math.round(head.depth                  / number_sp_in_a_pdf_point - rule_width / 2 )
 
       -- recurse into the contents of the box
       show_page_elements(head)
@@ -87,7 +95,7 @@ function show_page_elements(parent)
       parent.list = node.insert_before(parent.list,head,hyphen_marker)
 
 
-    elseif head.id == 10 then -- glue
+  elseif head.id == 10 then -- glue
       local wd = head.spec.width
       local color = "0.5 G"
       if parent.glue_sign == 1 and parent.glue_order == head.spec.stretch_order then
@@ -98,22 +106,23 @@ function show_page_elements(parent)
         color = "1 0 1 RG"
       end
       local pdfstring = node.new("whatsit","pdf_literal")
+      local wd_bp = math.round(wd / number_sp_in_a_pdf_point,2)
       if parent.id == 0 then --hlist
-        pdfstring.data = string.format("q %s [0.2] 0 d  0.5 w 0 0  m %g 0 l s Q",color,wd / number_sp_in_a_pdf_point)
+        pdfstring.data = string.format("q %s [0.2] 0 d  0.5 w 0 0  m %g 0 l s Q",color,wd_bp)
       else -- vlist
-        pdfstring.data = string.format("q 0.1 G 0.1 w -0.5 0 m 0.5 0 l -0.5 %g m 0.5 %g l s [0.2] 0 d  0.5 w 0.25 0  m 0.25 %g l s Q",-wd / number_sp_in_a_pdf_point,-wd / number_sp_in_a_pdf_point,-wd / number_sp_in_a_pdf_point)
+        pdfstring.data = string.format("q 0.1 G 0.1 w -0.5 0 m 0.5 0 l -0.5 %g m 0.5 %g l s [0.2] 0 d  0.5 w 0.25 0  m 0.25 %g l s Q",-wd_bp,-wd_bp,-wd_bp)
       end
       parent.list = node.insert_before(parent.list,head,pdfstring)
-
 
     elseif head.id == 11 then -- kern
       local rectangle = node.new("whatsit","pdf_literal")
       local color = "1 1 0 rg"
       if head.kern < 0 then color = "1 0 0 rg" end
+      local k = math.round(head.kern / number_sp_in_a_pdf_point)
       if parent.id == 0 then --hlist
-        rectangle.data = string.format("q %s 0 w 0 0  %g 1 re B Q",color, head.kern / number_sp_in_a_pdf_point )
+        rectangle.data = string.format("q %s 0 w 0 0  %g 1 re B Q",color, k )
       else
-        rectangle.data = string.format("q %s 0 w 0 0  1 %g re B Q",color, -head.kern / number_sp_in_a_pdf_point )
+        rectangle.data = string.format("q %s 0 w 0 0  1 %g re B Q",color, -k )
       end
       parent.list = node.insert_before(parent.list,head,rectangle)
 
