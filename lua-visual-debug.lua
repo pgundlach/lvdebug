@@ -66,9 +66,9 @@ function show_page_elements(parent)
     if head.id == 0 or head.id == 1 then -- hbox / vbox
 
       local rule_width = 0.1
-      local wd = math.round(head.width                  / number_sp_in_a_pdf_point - rule_width )
-      local ht = math.round((head.height + head.depth)  / number_sp_in_a_pdf_point - rule_width )
-      local dp = math.round(head.depth                  / number_sp_in_a_pdf_point - rule_width / 2 )
+      local wd = math.round(head.width                  / number_sp_in_a_pdf_point - rule_width     ,2)
+      local ht = math.round((head.height + head.depth)  / number_sp_in_a_pdf_point - rule_width     ,2)
+      local dp = math.round(head.depth                  / number_sp_in_a_pdf_point - rule_width / 2 ,2)
 
       -- recurse into the contents of the box
       show_page_elements(head)
@@ -118,7 +118,7 @@ function show_page_elements(parent)
       local rectangle = node.new("whatsit","pdf_literal")
       local color = "1 1 0 rg"
       if head.kern < 0 then color = "1 0 0 rg" end
-      local k = math.round(head.kern / number_sp_in_a_pdf_point)
+      local k = math.round(head.kern / number_sp_in_a_pdf_point,2)
       if parent.id == 0 then --hlist
         rectangle.data = string.format("q %s 0 w 0 0  %g 1 re B Q",color, k )
       else
