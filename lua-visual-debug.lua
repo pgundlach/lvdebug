@@ -128,5 +128,6 @@ function show_page_elements(parent)
     end
     head = head.next
   end
+  return true
 end
 
