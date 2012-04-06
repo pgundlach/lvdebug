@@ -19,6 +19,7 @@ Requirements: The package has only been tested with LuaTeX and
 
 
 Copyright 2012 Patrick Gundlach (patrick@gundla.ch)
+Package version: see Makefile
 Public repository: https://github.com/pgundlach/lvdebug
 Licensed under the MIT license. See the Lua file for details.
 The idea is heavily inspired by Hans Hagen's http://pragma-ade.com/articles/art-visi.pdf

@@ -1,5 +1,6 @@
 -- Copyright 2012 Patrick Gundlach, patrick@gundla.ch
 -- Public repository: https://github.com/pgundlach/lvdebug (issues/pull requests,...)
+-- Version: see Makefile
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
 -- "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
@@ -18,7 +19,7 @@
 module(...,package.seeall)
 
 -- There are 65782 scaled points in a PDF point
--- Therefore we need to devide all TeX lengths by
+-- Therefore we need to divide all TeX lengths by
 -- this amount to get the PDF points.
 local number_sp_in_a_pdf_point = 65782
 
