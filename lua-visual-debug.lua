@@ -100,7 +100,7 @@ function show_page_elements(parent)
       parent.list = node.insert_before(parent.list,head,hyphen_marker)
 
 
-  elseif head.id == 10 then -- glue
+  elseif head.id == 12 then -- glue
       local wd = head.spec.width
       local color = "0.5 G"
       if parent.glue_sign == 1 and parent.glue_order == head.spec.stretch_order then
@@ -120,7 +120,7 @@ function show_page_elements(parent)
       parent.list = node.insert_before(parent.list,head,pdfstring)
 
 
-    elseif head.id == 11 then -- kern
+    elseif head.id == 13 then -- kern
       local rectangle = node.new("whatsit","pdf_literal")
       local color = "1 1 0 rg"
       if head.kern < 0 then color = "1 0 0 rg" end
@@ -133,7 +133,7 @@ function show_page_elements(parent)
       parent.list = node.insert_before(parent.list,head,rectangle)
 
 
-    elseif head.id == 12 then -- penalty
+    elseif head.id == 14 then -- penalty
       local color = "1 g"
       local rectangle = node.new("whatsit","pdf_literal")
       if head.penalty < 10000 then
@@ -146,4 +146,3 @@ function show_page_elements(parent)
   end
   return true
 end
-
