@@ -109,13 +109,17 @@ function show_page_elements(parent)
 
 
   elseif head.id == GLUE then
-      local wd = head.spec.width
+      local head_spec = head.spec
+      if not head_spec then
+        head_spec = head
+      end
+      local wd = head_spec.width
       local color = "0.5 G"
-      if parent.glue_sign == 1 and parent.glue_order == head.spec.stretch_order then
-        wd = wd + parent.glue_set * head.spec.stretch
+      if parent.glue_sign == 1 and parent.glue_order == head_spec.stretch_order then
+        wd = wd + parent.glue_set * head_spec.stretch
         color = "0 0 1 RG"
-      elseif parent.glue_sign == 2 and parent.glue_order == head.spec.shrink_order then
-        wd = wd - parent.glue_set * head.spec.shrink
+      elseif parent.glue_sign == 2 and parent.glue_order == head_spec.shrink_order then
+        wd = wd - parent.glue_set * head_spec.shrink
         color = "1 0 1 RG"
       end
       local pdfstring = node.new("whatsit","pdf_literal")
