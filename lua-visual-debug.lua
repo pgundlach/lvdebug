@@ -52,6 +52,14 @@ local number_sp_in_a_pdf_point = 65782
 --   -- the pointer is "nil" if there is no next item
 -- end
 
+local HLIST = node.id("hlist")
+local VLIST = node.id("vlist")
+local RULE = node.id("rule")
+local DISC = node.id("disc")
+local GLUE = node.id("glue")
+local KERN = node.id("kern")
+local PENALTY = node.id("penalty")
+
 function math.round(num, idp)
   if idp and idp>0 then
     local mult = 10^idp
@@ -64,7 +72,7 @@ end
 function show_page_elements(parent)
   local head = parent.list
   while head do
-    if head.id == 0 or head.id == 1 then -- hbox / vbox
+    if head.id == HLIST or head.id == VLIST then
 
       local rule_width = 0.1
       local wd = math.round(head.width                  / number_sp_in_a_pdf_point - rule_width     ,2)
@@ -74,7 +82,7 @@ function show_page_elements(parent)
       -- recurse into the contents of the box
       show_page_elements(head)
       local rectangle = node.new("whatsit","pdf_literal")
-      if head.id == 0 then -- hbox
+      if head.id == HLIST then -- hbox
         rectangle.data = string.format("q 0.5 G %g w %g %g %g %g re s Q", rule_width, -rule_width / 2, -dp, wd, ht)
       else
         rectangle.data = string.format("q 0.1 G %g w %g %g %g %g re s Q", rule_width, -rule_width / 2, 0, wd, -ht)
@@ -82,7 +90,7 @@ function show_page_elements(parent)
       head.list = node.insert_before(head.list,head.list,rectangle)
 
 
-    elseif head.id == 2 then -- rule
+    elseif head.id == RULE then
       local show_rule = node.new("whatsit","pdf_literal")
       if head.width == -1073741824 or head.height == -1073741824 or head.depth == -1073741824 then
         -- ignore for now -- these rules are stretchable
@@ -94,25 +102,29 @@ function show_page_elements(parent)
       parent.list = node.insert_before(parent.list,head,show_rule)
 
 
-    elseif head.id == 7 then -- disc
+    elseif head.id == DISC then
       local hyphen_marker = node.new("whatsit","pdf_literal")
       hyphen_marker.data = "q 0 0 1 RG 0.3 w 0 -1 m 0 0 l S Q"
       parent.list = node.insert_before(parent.list,head,hyphen_marker)
 
 
-  elseif head.id == 10 then -- glue
-      local wd = head.spec.width
+  elseif head.id == GLUE then
+      local head_spec = head.spec
+      if not head_spec then
+        head_spec = head
+      end
+      local wd = head_spec.width
       local color = "0.5 G"
-      if parent.glue_sign == 1 and parent.glue_order == head.spec.stretch_order then
-        wd = wd + parent.glue_set * head.spec.stretch
+      if parent.glue_sign == 1 and parent.glue_order == head_spec.stretch_order then
+        wd = wd + parent.glue_set * head_spec.stretch
         color = "0 0 1 RG"
-      elseif parent.glue_sign == 2 and parent.glue_order == head.spec.shrink_order then
-        wd = wd - parent.glue_set * head.spec.shrink
+      elseif parent.glue_sign == 2 and parent.glue_order == head_spec.shrink_order then
+        wd = wd - parent.glue_set * head_spec.shrink
         color = "1 0 1 RG"
       end
       local pdfstring = node.new("whatsit","pdf_literal")
       local wd_bp = math.round(wd / number_sp_in_a_pdf_point,2)
-      if parent.id == 0 then --hlist
+      if parent.id == HLIST then
         pdfstring.data = string.format("q %s [0.2] 0 d  0.5 w 0 0  m %g 0 l s Q",color,wd_bp)
       else -- vlist
         pdfstring.data = string.format("q 0.1 G 0.1 w -0.5 0 m 0.5 0 l -0.5 %g m 0.5 %g l s [0.2] 0 d  0.5 w 0.25 0  m 0.25 %g l s Q",-wd_bp,-wd_bp,-wd_bp)
@@ -120,12 +132,12 @@ function show_page_elements(parent)
       parent.list = node.insert_before(parent.list,head,pdfstring)
 
 
-    elseif head.id == 11 then -- kern
+    elseif head.id == KERN then
       local rectangle = node.new("whatsit","pdf_literal")
       local color = "1 1 0 rg"
       if head.kern < 0 then color = "1 0 0 rg" end
       local k = math.round(head.kern / number_sp_in_a_pdf_point,2)
-      if parent.id == 0 then --hlist
+      if parent.id == HLIST then
         rectangle.data = string.format("q %s 0 w 0 0  %g 1 re B Q",color, k )
       else
         rectangle.data = string.format("q %s 0 w 0 0  1 %g re B Q",color, -k )
@@ -133,7 +145,7 @@ function show_page_elements(parent)
       parent.list = node.insert_before(parent.list,head,rectangle)
 
 
-    elseif head.id == 12 then -- penalty
+    elseif head.id == PENALTY then
       local color = "1 g"
       local rectangle = node.new("whatsit","pdf_literal")
       if head.penalty < 10000 then
@@ -146,4 +158,3 @@ function show_page_elements(parent)
   end
   return true
 end
-
