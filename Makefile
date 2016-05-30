@@ -1,6 +1,7 @@
 VERSION = 0.5
 DESTDIR = ctan
 DOCDEST = $(DESTDIR)/doc
+CP = cp -X
 
 DATE_ISO = $(shell date +"%F")
 DATE_TEX = $(shell date +"%Y\/%m\/%d")
@@ -11,18 +12,18 @@ all:
 dist: doc
 	mkdir -p $(DESTDIR)
 	mkdir -p $(DOCDEST)
-	cp README $(DOCDEST)
-	cp lua-visual-debug.sty $(DESTDIR)
-	cp lua-visual-debug.lua $(DESTDIR)
-	cp tmp/lvdebug-doc.tex tmp/lvdebug-doc.pdf $(DOCDEST)
-	cp sample.pdf sample.tex sample-plain.pdf sample-plain.tex $(DOCDEST)
-	cp *png $(DOCDEST)
+	$(CP) README $(DOCDEST)
+	$(CP) lua-visual-debug.sty $(DESTDIR)
+	$(CP) lua-visual-debug.lua $(DESTDIR)
+	$(CP) tmp/lvdebug-doc.tex tmp/lvdebug-doc.pdf $(DOCDEST)
+	$(CP) sample.pdf sample.tex sample-plain.pdf sample-plain.tex $(DOCDEST)
+	$(CP) *png $(DOCDEST)
 	perl -pi -e 's/(lvdebugpkgversion)\{.*\}/$$1\{$(VERSION)\}/' $(DESTDIR)/lua-visual-debug.sty
 	perl -pi -e 's/(lvdebugpkgdate)\{.*\}/$$1\{$(DATE_TEX)\}/' $(DESTDIR)/lua-visual-debug.sty
 	perl -pi -e 's/(^-- Version:).*/$$1 $(VERSION)/' $(DESTDIR)/lua-visual-debug.lua
 	perl -pi -e 's/(Package version:).*/$$1 $(VERSION)/' $(DOCDEST)/README
 	rm -f $(DESTDIR)/README
-	( cd $(DESTDIR) ; ln -s $(DOCDEST)/README )
+	( cd $(DESTDIR) ; ln -s doc/README )
 
 
 
@@ -41,6 +42,8 @@ zip: clean dist
 clean:
 	-rm -rf tmp $(DESTDIR)
 	-rm sample-plain.pdf sample-plain-crop.pdf sample.pdf sample-crop.pdf
+	find . -name ".DS_Store" -exec rm {} \;
+
 
 
 sample-plain.pdf: sample-plain.tex
