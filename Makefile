@@ -1,5 +1,5 @@
 VERSION = 0.5
-DESTDIR = ctan
+DESTDIR = lua-visual-debug
 DOCDEST = $(DESTDIR)/doc
 CP = cp -X
 
@@ -12,7 +12,7 @@ all:
 dist: doc
 	mkdir -p $(DESTDIR)
 	mkdir -p $(DOCDEST)
-	$(CP) README $(DOCDEST)
+	$(CP) README.md $(DOCDEST)
 	$(CP) lua-visual-debug.sty $(DESTDIR)
 	$(CP) lua-visual-debug.lua $(DESTDIR)
 	$(CP) tmp/lvdebug-doc.tex tmp/lvdebug-doc.pdf $(DOCDEST)
@@ -21,9 +21,9 @@ dist: doc
 	perl -pi -e 's/(lvdebugpkgversion)\{.*\}/$$1\{$(VERSION)\}/' $(DESTDIR)/lua-visual-debug.sty
 	perl -pi -e 's/(lvdebugpkgdate)\{.*\}/$$1\{$(DATE_TEX)\}/' $(DESTDIR)/lua-visual-debug.sty
 	perl -pi -e 's/(^-- Version:).*/$$1 $(VERSION)/' $(DESTDIR)/lua-visual-debug.lua
-	perl -pi -e 's/(Package version:).*/$$1 $(VERSION)/' $(DOCDEST)/README
-	rm -f $(DESTDIR)/README
-	( cd $(DESTDIR) ; ln -s doc/README )
+	perl -pi -e 's/(Package version:).*/$$1 $(VERSION)/' $(DOCDEST)/README.md
+	rm -f $(DESTDIR)/README.md
+	( cd $(DESTDIR) ; ln -s doc/README.md )
 
 
 
@@ -37,6 +37,7 @@ doc: texsample latexsample
 	( cd tmp ; lualatex lvdebug-doc.tex)
 
 zip: clean dist
+	-rm lvdebug-$(VERSION).tgz
 	tar czvf lvdebug-$(VERSION).tgz $(DESTDIR)/*
 
 clean:
