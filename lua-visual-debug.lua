@@ -149,7 +149,7 @@ function show_page_elements(parent)
       local color = "1 g"
       local rectangle = node.new("whatsit","pdf_literal")
       if head.penalty < 10000 then
-        color = string.format("%d g", 1 - head.penalty / 10000)
+        color = string.format("%d g", 1 - math.floor(head.penalty / 10000))
       end
       rectangle.data = string.format("q %s 0 w 0 0 1 1 re B Q",color)
       parent.list = node.insert_before(parent.list,head,rectangle)
