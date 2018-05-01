@@ -3,7 +3,7 @@
 \def\lvdebugpkgdate{2012/04/05}
 \def\lvdebugpkgversion{0.3}
 
-\expandafter\ifx\csname ProvidesPackage\endcsname\relax
+\ifx\ProvidesPackage\undefined
   \input ifluatex.sty\relax
 \else
   \NeedsTeXFormat{LaTeX2e}
@@ -16,7 +16,7 @@
   \AtBeginShipout {\directlua{lvd.show_page_elements(tex.box["AtBeginShipoutBox"])}}%
 }
 
-\expandafter\ifx\csname ProvidesPackage\endcsname\relax
+\ifx\ProvidesPackage\undefined
   \ifluatex
    \input atbegshi.sty\relax
    \luavisualdebug@dothings
