@@ -1,4 +1,4 @@
--- Copyright 2012 Patrick Gundlach, patrick@gundla.ch
+-- Copyright 2012-2019 Patrick Gundlach, patrick@gundla.ch
 -- Public repository: https://github.com/pgundlach/lvdebug (issues/pull requests,...)
 -- Version: see Makefile
 
