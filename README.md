@@ -20,7 +20,7 @@ Requirements: The package has only been tested with LuaTeX and
   but other engines only show a warning message.
 
 
-Copyright 2012–2019 Patrick Gundlach (<patrick@gundla.ch>) and others (see Git information)
+Copyright 2012–2021 Patrick Gundlach (<patrick@gundla.ch>) and others (see Git information)
 
 Package version: see Makefile
 

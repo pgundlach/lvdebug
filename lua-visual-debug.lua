@@ -1,4 +1,4 @@
--- Copyright 2012-2019 Patrick Gundlach, patrick@gundla.ch
+-- Copyright 2012-2021 Patrick Gundlach, patrick@gundla.ch
 -- Public repository: https://github.com/pgundlach/lvdebug (issues/pull requests,...)
 -- Version: see Makefile
 
@@ -55,6 +55,7 @@ local number_sp_in_a_pdf_point = 65782
 local HLIST = node.id("hlist")
 local VLIST = node.id("vlist")
 local RULE = node.id("rule")
+local DIR  = node.id("dir")
 local DISC = node.id("disc")
 local GLUE = node.id("glue")
 local KERN = node.id("kern")
@@ -68,10 +69,13 @@ function math.round(num, idp)
   return math.floor(num + 0.5)
 end
 
+local curdir = {}, pardir
 
 function show_page_elements(parent)
   local head = parent.list
   while head do
+    local has_dir = false
+    if head.dir == "TLT" then table.insert(curdir,"ltr") has_dir=true elseif head.dir == "TRT" then table.insert(curdir,"rtl") has_dir=true end
     if head.id == HLIST or head.id == VLIST then
 
       local rule_width = 0.1
@@ -82,6 +86,7 @@ function show_page_elements(parent)
       -- recurse into the contents of the box
       show_page_elements(head)
       local rectangle = node.new("whatsit","pdf_literal")
+      if curdir[#curdir] == "rtl" then wd = wd * -1 end
       if head.id == HLIST then -- hbox
         rectangle.data = string.format("q 0.5 G %g w %g %g %g %g re s Q", rule_width, -rule_width / 2, -dp, wd, ht)
       else
@@ -107,6 +112,19 @@ function show_page_elements(parent)
       hyphen_marker.data = "q 0 0 1 RG 0.3 w 0 -1 m 0 0 l S Q"
       parent.list = node.insert_before(parent.list,head,hyphen_marker)
 
+    elseif head.id == DIR then
+      local mode = string.sub(head.dir,1,1)
+      local texdir = string.sub(head.dir,2,4)
+      local ldir
+      if texdir == "TLT" then ldir = "ltr" else ldir = "rtl" end
+      if mode == "+" then
+          table.insert(curdir,ldir)
+      elseif mode == "-" then
+          local x = table.remove(curdir)
+          if x ~= ldir then
+              warning("paragraph direction incorrect, found %s, expected %s",ldir,x)
+          end
+      end
 
   elseif head.id == GLUE then
       local head_spec = head.spec
@@ -124,13 +142,14 @@ function show_page_elements(parent)
       end
       local pdfstring = node.new("whatsit","pdf_literal")
       local wd_bp = math.round(wd / number_sp_in_a_pdf_point,2)
+      if curdir[#curdir] == "rtl" then wd_bp = wd_bp * -1 end
+
       if parent.id == HLIST then
         pdfstring.data = string.format("q %s [0.2] 0 d  0.5 w 0 0  m %g 0 l s Q",color,wd_bp)
       else -- vlist
         pdfstring.data = string.format("q 0.1 G 0.1 w -0.5 0 m 0.5 0 l -0.5 %g m 0.5 %g l s [0.2] 0 d  0.5 w 0.25 0  m 0.25 %g l s Q",-wd_bp,-wd_bp,-wd_bp)
       end
       parent.list = node.insert_before(parent.list,head,pdfstring)
-
 
     elseif head.id == KERN then
       local rectangle = node.new("whatsit","pdf_literal")
@@ -153,6 +172,9 @@ function show_page_elements(parent)
       end
       rectangle.data = string.format("q %s 0 w 0 0 1 1 re B Q",color)
       parent.list = node.insert_before(parent.list,head,rectangle)
+    end
+    if has_dir then
+      table.remove(curdir)
     end
     head = head.next
   end

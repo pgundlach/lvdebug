@@ -1,4 +1,4 @@
-VERSION = 0.7
+VERSION = 0.8
 DESTDIR = lua-visual-debug
 DOCDEST = $(DESTDIR)/doc
 CP = cp -X
