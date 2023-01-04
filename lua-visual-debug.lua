@@ -1,22 +1,25 @@
--- Copyright 2012-2021 Patrick Gundlach, patrick@gundla.ch
--- Public repository: https://github.com/pgundlach/lvdebug (issues/pull requests,...)
--- Version: see Makefile
+-- Copyright 2012-2023 Patrick Gundlach, patrick@gundla.ch Public repository:
+-- https://github.com/pgundlach/lvdebug (issues/pull requests,...) Version: see
+-- Makefile
 
--- Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
--- "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
--- publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do
--- so, subject to the following conditions:
+-- Permission is hereby granted, free of charge, to any person obtaining a copy
+-- of this software and associated documentation files (the "Software"), to deal
+-- in the Software without restriction, including without limitation the rights
+-- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+-- copies of the Software, and to permit persons to whom the Software is
+-- furnished to do so, subject to the following conditions:
 --
--- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+-- The above copyright notice and this permission notice shall be included in
+-- all copies or substantial portions of the Software.
 --
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
--- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
--- FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
--- WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+-- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+-- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+-- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+-- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+-- SOFTWARE.
 
-
-
-module(...,package.seeall)
 
 -- There are 65782 scaled points in a PDF point
 -- Therefore we need to divide all TeX lengths by
@@ -27,13 +30,13 @@ local number_sp_in_a_pdf_point = 65782
 -- The idea is the following: at page shipout, all elements on a page are fixed.
 -- TeX creates an intermediate data structure before putting that into the PDF
 -- We can "intercept" that data structure and add pdf_literal (whatist) nodes,
--- that makes glues, kerns and other items visible by drawing a rule, rectangle or
--- other visual aids.
--- This has no influence on typeset material, because these pdf_literal instructions
--- are only visible to the PDF file (PDF renderer) and have no size themselves.
+-- that makes glues, kerns and other items visible by drawing a rule, rectangle
+-- or other visual aids. This has no influence on typeset material, because
+-- these pdf_literal instructions are only visible to the PDF file (PDF
+-- renderer) and have no size themselves.
 
--- We recursively loop through the contents of boxes and look at the (linear) list of
--- items in that box. We start at the "shipout box".
+-- We recursively loop through the contents of boxes and look at the (linear)
+-- list of items in that box. We start at the "shipout box".
 
 -- The "algorithm" goes like this:
 --
@@ -61,7 +64,7 @@ local GLUE = node.id("glue")
 local KERN = node.id("kern")
 local PENALTY = node.id("penalty")
 
-function math.round(num, idp)
+local function math_round(num, idp)
   if idp and idp>0 then
     local mult = 10^idp
     return math.floor(num * mult + 0.5) / mult
@@ -69,19 +72,26 @@ function math.round(num, idp)
   return math.floor(num + 0.5)
 end
 
-local curdir = {}, pardir
+local curdir = {}
+
+local show_page_elements
 
 function show_page_elements(parent)
   local head = parent.list
   while head do
     local has_dir = false
-    if head.dir == "TLT" then table.insert(curdir,"ltr") has_dir=true elseif head.dir == "TRT" then table.insert(curdir,"rtl") has_dir=true end
+    if head.dir == "TLT" then
+      table.insert(curdir,"ltr")
+      has_dir=true
+    elseif head.dir == "TRT" then
+      table.insert(curdir,"rtl") has_dir=true
+    end
     if head.id == HLIST or head.id == VLIST then
 
       local rule_width = 0.1
-      local wd = math.round(head.width                  / number_sp_in_a_pdf_point - rule_width     ,2)
-      local ht = math.round((head.height + head.depth)  / number_sp_in_a_pdf_point - rule_width     ,2)
-      local dp = math.round(head.depth                  / number_sp_in_a_pdf_point - rule_width / 2 ,2)
+      local wd = math_round(head.width                  / number_sp_in_a_pdf_point - rule_width     ,2)
+      local ht = math_round((head.height + head.depth)  / number_sp_in_a_pdf_point - rule_width     ,2)
+      local dp = math_round(head.depth                  / number_sp_in_a_pdf_point - rule_width / 2 ,2)
 
       -- recurse into the contents of the box
       show_page_elements(head)
@@ -100,8 +110,8 @@ function show_page_elements(parent)
       if head.width == -1073741824 or head.height == -1073741824 or head.depth == -1073741824 then
         -- ignore for now -- these rules are stretchable
       else
-        local dp = math.round( head.depth / number_sp_in_a_pdf_point  ,2)
-        local ht = math.round( head.height / number_sp_in_a_pdf_point ,2)
+        local dp = math_round( head.depth / number_sp_in_a_pdf_point  ,2)
+        local ht = math_round( head.height / number_sp_in_a_pdf_point ,2)
         show_rule.data =  string.format("q 1 0 0 RG 1 0 0 rg 0.4 w 0 %g m 0 %g l S Q",-dp,ht)
       end
       parent.list = node.insert_before(parent.list,head,show_rule)
@@ -122,7 +132,7 @@ function show_page_elements(parent)
       elseif mode == "-" then
           local x = table.remove(curdir)
           if x ~= ldir then
-              warning("paragraph direction incorrect, found %s, expected %s",ldir,x)
+              print(string.format("paragraph direction incorrect, found %s, expected %s",ldir,x))
           end
       end
 
@@ -141,13 +151,13 @@ function show_page_elements(parent)
         color = "1 0 1 RG"
       end
       local pdfstring = node.new("whatsit","pdf_literal")
-      local wd_bp = math.round(wd / number_sp_in_a_pdf_point,2)
+      local wd_bp = math_round(wd / number_sp_in_a_pdf_point,2)
       if curdir[#curdir] == "rtl" then wd_bp = wd_bp * -1 end
 
       if parent.id == HLIST then
-        pdfstring.data = string.format("q %s [0.2] 0 d  0.5 w 0 0  m %g 0 l s Q",color,wd_bp)
+        pdfstring.data = string.format("q %s [0.2] 0 d 0.5 w 0 0 m %g 0 l S Q", color, wd_bp)
       else -- vlist
-        pdfstring.data = string.format("q 0.1 G 0.1 w -0.5 0 m 0.5 0 l -0.5 %g m 0.5 %g l s [0.2] 0 d  0.5 w 0.25 0  m 0.25 %g l s Q",-wd_bp,-wd_bp,-wd_bp)
+        pdfstring.data = string.format("q 0.1 G 0.1 w -0.5 0 m 0.5 0 l -0.5 %g m 0.5 %g l S [0.2] 0 d  0.5 w 0.25 0  m 0.25 %g l S Q",-wd_bp,-wd_bp,-wd_bp)
       end
       parent.list = node.insert_before(parent.list,head,pdfstring)
 
@@ -155,9 +165,9 @@ function show_page_elements(parent)
       local rectangle = node.new("whatsit","pdf_literal")
       local color = "1 1 0 rg"
       if head.kern < 0 then color = "1 0 0 rg" end
-      local k = math.round(head.kern / number_sp_in_a_pdf_point,2)
+      local k = math_round(head.kern / number_sp_in_a_pdf_point,2)
       if parent.id == HLIST then
-        rectangle.data = string.format("q %s 0 w 0 0  %g 1 re B Q",color, k )
+        rectangle.data = string.format("q %s 0 w 0 0 %g 1 re B Q",color, k )
       else
         rectangle.data = string.format("q %s 0 w 0 0  1 %g re B Q",color, -k )
       end
@@ -180,3 +190,8 @@ function show_page_elements(parent)
   end
   return true
 end
+
+
+return {
+  show_page_elements = show_page_elements
+}
