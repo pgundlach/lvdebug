@@ -28,7 +28,7 @@ Public repository: <https://github.com/pgundlach/lvdebug>
 
 Licensed under the MIT license. See the Lua file for details.
 
-The idea is heavily inspired by Hans Hagen's <http://pragma-ade.com/articles/art-visi.pdf>
+The idea is heavily inspired by Hans Hagen's <https://www.pragma-ade.com/articles/art-visi.pdf>
 
 
 Example output
