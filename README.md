@@ -1,3 +1,8 @@
+**This repository is outdated.** Please refer to the new repository at
+
+https://github.com/Udi-Fogiel/lvdebug
+
+
 Visual debugging for LuaTeX
 ===========================
 
